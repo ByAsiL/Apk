@@ -26,7 +26,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        fixStatusBarAndNavigationBar();
+        fixSystemBars();
 
         rootLayout = new FrameLayout(this);
         rootLayout.setBackgroundColor(Color.parseColor("#eef2f7"));
@@ -34,12 +34,14 @@ public class MainActivity extends Activity {
         webView = new WebView(this);
         webView.setBackgroundColor(Color.parseColor("#eef2f7"));
 
-        FrameLayout.LayoutParams webParams = new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT
+        rootLayout.addView(
+                webView,
+                new FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        FrameLayout.LayoutParams.MATCH_PARENT
+                )
         );
 
-        rootLayout.addView(webView, webParams);
         setContentView(rootLayout);
 
         applySafeAreaPadding();
@@ -67,20 +69,15 @@ public class MainActivity extends Activity {
         webView.loadUrl("file:///android_asset/www/index.html");
     }
 
-    private void fixStatusBarAndNavigationBar() {
+    private void fixSystemBars() {
         Window window = getWindow();
 
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
-
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
 
         window.setStatusBarColor(Color.parseColor("#0a1628"));
         window.setNavigationBarColor(Color.parseColor("#334155"));
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            window.getDecorView().setSystemUiVisibility(0);
-        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.setDecorFitsSystemWindows(false);
@@ -93,6 +90,8 @@ public class MainActivity extends Activity {
                                 | WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
                 );
             }
+        } else {
+            window.getDecorView().setSystemUiVisibility(0);
         }
     }
 
@@ -101,24 +100,26 @@ public class MainActivity extends Activity {
             rootLayout.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
                 @Override
                 public WindowInsets onApplyWindowInsets(View view, WindowInsets insets) {
-                    android.graphics.Insets systemBars =
+                    android.graphics.Insets bars =
                             insets.getInsets(WindowInsets.Type.systemBars());
 
                     view.setPadding(
-                            systemBars.left,
-                            systemBars.top,
-                            systemBars.right,
-                            systemBars.bottom
+                            bars.left,
+                            bars.top,
+                            bars.right,
+                            bars.bottom
                     );
 
                     return insets;
                 }
             });
         } else {
-            int statusBarHeight = getStatusBarHeight();
-            int navigationBarHeight = getNavigationBarHeight();
-
-            rootLayout.setPadding(0, statusBarHeight, 0, navigationBarHeight);
+            rootLayout.setPadding(
+                    0,
+                    getStatusBarHeight(),
+                    0,
+                    getNavigationBarHeight()
+            );
         }
     }
 
@@ -158,10 +159,6 @@ public class MainActivity extends Activity {
             webView.goBack();
         } else {
             super.onBackPressed();
-        }
-    }
-}        public void showToast(String message) {
-            runOnUiThread(() -> Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show());
         }
     }
 }
