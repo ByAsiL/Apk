@@ -1,37 +1,48 @@
 package com.ihalekayit.paneli;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.os.Bundle;
+import android.graphics.Color;
 import android.os.Build;
-import android.content.Intent;
-import android.net.Uri;
+import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
-import android.webkit.JavascriptInterface;
-import android.webkit.ValueCallback;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
+import android.view.WindowManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Toast;
+import android.widget.FrameLayout;
 
 public class MainActivity extends Activity {
-    private WebView webView;
-    private ValueCallback<Uri[]> filePathCallback;
-    private static final int FILE_CHOOSER_REQUEST = 1001;
 
+    private WebView webView;
+    private FrameLayout rootLayout;
+
+    @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Window window = getWindow();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            window.setStatusBarColor(android.graphics.Color.parseColor("#0a1628"));
-            window.setNavigationBarColor(android.graphics.Color.parseColor("#0a1628"));
-        }
+        fixStatusBarAndNavigationBar();
+
+        rootLayout = new FrameLayout(this);
+        rootLayout.setBackgroundColor(Color.parseColor("#eef2f7"));
 
         webView = new WebView(this);
-        setContentView(webView);
+        webView.setBackgroundColor(Color.parseColor("#eef2f7"));
+
+        FrameLayout.LayoutParams webParams = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+        );
+
+        rootLayout.addView(webView, webParams);
+        setContentView(rootLayout);
+
+        applySafeAreaPadding();
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
@@ -43,52 +54,102 @@ public class MainActivity extends Activity {
         settings.setUseWideViewPort(true);
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
-        settings.setMediaPlaybackRequiresUserGesture(false);
+        settings.setTextZoom(100);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             settings.setAllowFileAccessFromFileURLs(true);
             settings.setAllowUniversalAccessFromFileURLs(true);
         }
 
-        webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
         webView.setWebViewClient(new WebViewClient());
-        webView.setWebChromeClient(new WebChromeClient() {
-            @Override
-            public boolean onShowFileChooser(WebView webView,
-                                             ValueCallback<Uri[]> filePathCallback,
-                                             FileChooserParams fileChooserParams) {
-                if (MainActivity.this.filePathCallback != null) {
-                    MainActivity.this.filePathCallback.onReceiveValue(null);
-                }
-                MainActivity.this.filePathCallback = filePathCallback;
-                Intent intent = fileChooserParams.createIntent();
-                try {
-                    startActivityForResult(intent, FILE_CHOOSER_REQUEST);
-                } catch (Exception e) {
-                    MainActivity.this.filePathCallback = null;
-                    Toast.makeText(MainActivity.this, "Dosya seçici açılamadı", Toast.LENGTH_SHORT).show();
-                    return false;
-                }
-                return true;
-            }
-        });
+        webView.setWebChromeClient(new WebChromeClient());
 
-        webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");
         webView.loadUrl("file:///android_asset/www/index.html");
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == FILE_CHOOSER_REQUEST) {
-            if (filePathCallback == null) return;
-            Uri[] results = null;
-            if (resultCode == Activity.RESULT_OK && data != null) {
-                Uri uri = data.getData();
-                if (uri != null) results = new Uri[]{uri};
-            }
-            filePathCallback.onReceiveValue(results);
-            filePathCallback = null;
+    private void fixStatusBarAndNavigationBar() {
+        Window window = getWindow();
+
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+
+        window.setStatusBarColor(Color.parseColor("#0a1628"));
+        window.setNavigationBarColor(Color.parseColor("#334155"));
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            window.getDecorView().setSystemUiVisibility(0);
         }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.setDecorFitsSystemWindows(false);
+
+            WindowInsetsController controller = window.getInsetsController();
+            if (controller != null) {
+                controller.setSystemBarsAppearance(
+                        0,
+                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                                | WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
+                );
+            }
+        }
+    }
+
+    private void applySafeAreaPadding() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            rootLayout.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
+                @Override
+                public WindowInsets onApplyWindowInsets(View view, WindowInsets insets) {
+                    android.graphics.Insets systemBars =
+                            insets.getInsets(WindowInsets.Type.systemBars());
+
+                    view.setPadding(
+                            systemBars.left,
+                            systemBars.top,
+                            systemBars.right,
+                            systemBars.bottom
+                    );
+
+                    return insets;
+                }
+            });
+        } else {
+            int statusBarHeight = getStatusBarHeight();
+            int navigationBarHeight = getNavigationBarHeight();
+
+            rootLayout.setPadding(0, statusBarHeight, 0, navigationBarHeight);
+        }
+    }
+
+    private int getStatusBarHeight() {
+        int result = 0;
+        int resourceId = getResources().getIdentifier(
+                "status_bar_height",
+                "dimen",
+                "android"
+        );
+
+        if (resourceId > 0) {
+            result = getResources().getDimensionPixelSize(resourceId);
+        }
+
+        return result;
+    }
+
+    private int getNavigationBarHeight() {
+        int result = 0;
+        int resourceId = getResources().getIdentifier(
+                "navigation_bar_height",
+                "dimen",
+                "android"
+        );
+
+        if (resourceId > 0) {
+            result = getResources().getDimensionPixelSize(resourceId);
+        }
+
+        return result;
     }
 
     @Override
@@ -99,10 +160,7 @@ public class MainActivity extends Activity {
             super.onBackPressed();
         }
     }
-
-    public class AndroidBridge {
-        @JavascriptInterface
-        public void showToast(String message) {
+}        public void showToast(String message) {
             runOnUiThread(() -> Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show());
         }
     }
