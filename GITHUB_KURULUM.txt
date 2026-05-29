@@ -1,0 +1,22 @@
+GITHUB PAGES KURULUMU
+
+1) Bu ZIP dosyasını aç.
+2) İçindeki dosyaları GitHub reposunun kök dizinine yükle.
+   Repo içinde direkt index.html, manifest.json, service-worker.js ve icons klasörü görünmeli.
+3) GitHub reposunda Settings > Pages bölümüne gir.
+4) Source: Deploy from a branch seç.
+5) Branch: main, Folder: /root seç ve Save yap.
+6) Oluşan Pages linkini Android Chrome ile aç.
+7) Sayfa açıldıktan sonra 10-20 saniye bekle ve bir kere yenile.
+8) Uygulama şartları tam oturunca ana ekranda yeşil “Uygulama Olarak Yükle” butonu görünür. Ona bas.
+9) Buton görünmezse Chrome sağ üst üç nokta menüsünden “Ana ekrana ekle” seç.
+
+NOT:
+Chrome bazen aynı işlemi “Yükle”, bazen “Ana ekrana ekle” diye gösterir. PWA kuralları tamamlandıysa ana ekrana eklenen ikon uygulama gibi tam ekran açılır.
+
+ÖNEMLİ:
+Bu uygulamada SGK, Maliye, EKAP, mail, banka veya e-Devlet şifresi saklama.
+
+
+V4 NOTU:
+Bu sürümde ana ekran filtre butonları, ihale türü seçimi ve kayıtlı ihaleler filtre sistemi eklendi. Eski cache kalırsa Chrome'da sayfayı yenileyin veya site verilerini temizleyin.

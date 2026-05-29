@@ -1,0 +1,29 @@
+İHALE KAYIT PANELİ - APK KURULUM NOTU
+
+Bu paket GitHub Pages/PWA değil, gerçek Android APK üretmek için hazırlanmıştır.
+
+EN KOLAY YÖNTEM: GITHUB ACTIONS İLE APK ÜRETME
+
+1) GitHub'da yeni repo aç.
+2) Bu ZIP'in içindeki dosyaları repo ana dizinine yükle.
+   Dikkat: ZIP dosyasını tek dosya olarak yükleme, içindekileri yükle.
+3) Repo içinde Actions sekmesine gir.
+4) Android APK Build isimli işlemi aç.
+5) Run workflow butonuna bas.
+6) İşlem bitince Artifacts bölümünden ihale-paneli-apk dosyasını indir.
+7) İçinden app-debug.apk çıkar.
+8) Telefona gönder ve kur.
+
+Telefon kurarken “Bilinmeyen kaynaklardan yüklemeye izin ver” isteyebilir.
+Bu normaldir çünkü Play Store dışından APK kuruyorsun.
+
+BU UYGULAMA NASIL ÇALIŞIR?
+
+- Chrome içinde açılmaz.
+- Telefon içinde normal uygulama gibi açılır.
+- İnternet gerektirmez.
+- Veriler uygulamanın kendi WebView localStorage alanında saklanır.
+
+ÖNEMLİ:
+SGK, Maliye, EKAP, banka, mail veya e-Devlet şifrelerini bu uygulamaya kaydetme.
+Bu uygulama ihale notu, yaklaşık maliyet, teklif ve takip için uygundur; şifre kasası değildir.
